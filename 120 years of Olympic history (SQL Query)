@@ -1,0 +1,44 @@
+--1. How many olympics games have been held?
+-- This is the generic request
+
+SELECT Count(DISTINCT Games) AS Total_olympic_games
+FROM athlete_events
+
+-- This is a more specific request, where we want to know how many winter and summer game are helded
+
+SELECT 'Winter' AS Edition,Count(DISTINCT Games) AS GameHelded
+FROM athlete_events
+WHERE Games LIKE '%Summer%'
+Union
+SELECT 'Summer' AS Edition,Count(DISTINCT Games) AS GameHelded
+FROM athlete_events
+WHERE Games LIKE '%Winter%'
+
+
+-- 2. List down all Olympics games held so far
+-- Due to an error in the Stocholm Summer game (1966), we're gonna fix it
+
+UPDATE athlete_events
+SET Year = '1966'
+WHERE Season='Summer' AND City='Stockholm'
+
+SELECT DISTINCT Year, Season, City
+FROM athlete_events
+ORDER BY Year
+
+-- 3. Mention the total no of nations who participated in each olympics game?
+-- We're gonna make a join in order to count ONLY the NOC at the olympics
+
+SELECT COUNT(AllCountries.region) AS TotalCountry, AllCountries.Games 
+FROM (
+SELECT Games, nr.region
+FROM athlete_events AS ae
+inner JOIN noc_regions AS nr
+ON ae.NOC=nr.NOC
+group by Games, nr.region) as AllCountries 
+GROUP BY AllCountries.Games
+ORDER BY AllCountries.Games
+
+-- In the subquery is necessary to GROUP BY games and region in order to select the distinct values on this column
+
+
